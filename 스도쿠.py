@@ -103,7 +103,7 @@ if "board" not in st.session_state:
 # --------------------
 # UI
 # --------------------
-st.title("🧩 Sudoku (빨간 경계 버전)")
+st.title("🧩 Sudoku ")
 st.write("빈칸에 숫자를 채워 스도쿠를 완성해보세요!")
 
 # 타이머
@@ -193,3 +193,4 @@ with col3:
             for i, r in enumerate(rankings[:10]):
                 t = r['time']
                 st.write(f"{i+1}. {r['name']} - {t//3600:02}:{(t%3600)//60:02}:{t%60:02}")
+
