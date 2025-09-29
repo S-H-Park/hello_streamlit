@@ -35,11 +35,11 @@ def add_ranking(name, seconds):
 st.markdown("""
     <style>
     .sudoku-cell {
-        width: 35px !important;
-        height: 35px !important;
+        width: 40px !important;
+        height: 40px !important;
         text-align: center !important;
         font-size: 22px !important;
-        border: 1px solid #ddd;
+        border: 1px solid #ccc;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -48,16 +48,21 @@ st.markdown("""
     .sudoku-cell input {
         text-align: center;
         font-size: 22px !important;
+        color: blue !important;
     }
-    /* 굵은 구분선 */
-    .sudoku-block-top    { border-top: 3px solid black !important; }
-    .sudoku-block-left   { border-left: 3px solid black !important; }
-    .sudoku-block-right  { border-right: 3px solid black !important; }
-    .sudoku-block-bottom { border-bottom: 3px solid black !important; }
+    /* 블록 굵은 선 */
+    .sudoku-block-top    { border-top: 2px solid black !important; }
+    .sudoku-block-left   { border-left: 2px solid black !important; }
+    .sudoku-block-right  { border-right: 2px solid black !important; }
+    .sudoku-block-bottom { border-bottom: 2px solid black !important; }
 
-    /* 채워진 칸 배경 */
+    /* 3x3 블록 배경 번갈아 적용 */
+    .block-alt {
+        background-color: #f7f7f7;
+    }
+    /* 채워진 숫자 */
     .prefilled {
-        background-color: #f9f9f9;
+        color: black;
         font-weight: bold;
     }
     </style>
@@ -116,12 +121,16 @@ for i in range(9):
     for j in range(9):
         val = st.session_state.board[i][j]
 
-        # 선 스타일
+        # 블록 선 스타일
         classes = ["sudoku-cell"]
         if i % 3 == 0: classes.append("sudoku-block-top")
         if j % 3 == 0: classes.append("sudoku-block-left")
         if i == 8: classes.append("sudoku-block-bottom")
         if j == 8: classes.append("sudoku-block-right")
+
+        # 블록 배경 교차
+        if (i//3 + j//3) % 2 == 0:
+            classes.append("block-alt")
 
         cell_class = " ".join(classes)
 
@@ -147,40 +156,4 @@ with col2:
                 for row in new_board
             ])
         except ValueError:
-            st.warning("⚠️ 모든 칸을 숫자로 채워주세요!")
-            st.stop()
-
-        is_correct = True
-        for i in range(9):
-            if len(np.unique(user_board[i,:])) != 9 or len(np.unique(user_board[:,i])) != 9:
-                is_correct = False
-                break
-        for i in range(0,9,3):
-            for j in range(0,9,3):
-                box = user_board[i:i+3,j:j+3].flatten()
-                if len(np.unique(box)) != 9:
-                    is_correct = False
-                    break
-
-        if is_correct:
-            st.success("🎉 정답입니다!")
-            st.session_state.finished = True
-            st.session_state.end_time = int(time.time())
-            name = st.text_input("이름을 입력하세요:", key="rank_name")
-            if st.button("랭킹 등록"):
-                if name:
-                    add_ranking(name, st.session_state.end_time - st.session_state.start_time)
-                    st.success("랭킹에 등록되었습니다!")
-        else:
-            st.error("❌ 오답입니다. 다시 시도하세요!")
-
-with col3:
-    if st.button("🏆 랭킹 보기"):
-        rankings = load_ranking()
-        if not rankings:
-            st.info("아직 랭킹이 없습니다.")
-        else:
-            st.subheader("Top 10 Rankings")
-            for i, r in enumerate(rankings[:10]):
-                t = r['time']
-                st.write(f"{i+1}. {r['name']} - {t//3600:02}:{(t%3600)//60:02}:{t%60:02}")
+            st.wa
