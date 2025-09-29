@@ -35,30 +35,30 @@ def add_ranking(name, seconds):
 st.markdown("""
     <style>
     .sudoku-cell {
-        width: 40px !important;
-        height: 40px !important;
+        width: 42px !important;
+        height: 42px !important;
         text-align: center !important;
         font-size: 22px !important;
-        border: 1px solid #ccc;
+        border: 1px solid #bbb;
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: #ffffff;
+        background-color: #eaeaea;  /* 기본 진한 회색 */
     }
     .sudoku-cell input {
         text-align: center;
         font-size: 22px !important;
         color: blue !important;
     }
-    /* 블록 굵은 선 */
-    .sudoku-block-top    { border-top: 2px solid black !important; }
-    .sudoku-block-left   { border-left: 2px solid black !important; }
-    .sudoku-block-right  { border-right: 2px solid black !important; }
-    .sudoku-block-bottom { border-bottom: 2px solid black !important; }
+    /* 3x3 빨간 경계 */
+    .sudoku-block-top    { border-top: 2px solid red !important; }
+    .sudoku-block-left   { border-left: 2px solid red !important; }
+    .sudoku-block-right  { border-right: 2px solid red !important; }
+    .sudoku-block-bottom { border-bottom: 2px solid red !important; }
 
-    /* 3x3 블록 배경 번갈아 적용 */
+    /* 3x3 블록 배경 교차 (좀 더 진하게) */
     .block-alt {
-        background-color: #f7f7f7;
+        background-color: #d6d6d6;
     }
     /* 채워진 숫자 */
     .prefilled {
@@ -103,7 +103,7 @@ if "board" not in st.session_state:
 # --------------------
 # UI
 # --------------------
-st.title("🧩 Sudoku (Streamlit 버전)")
+st.title("🧩 Sudoku (빨간 경계 버전)")
 st.write("빈칸에 숫자를 채워 스도쿠를 완성해보세요!")
 
 # 타이머
@@ -121,14 +121,14 @@ for i in range(9):
     for j in range(9):
         val = st.session_state.board[i][j]
 
-        # 블록 선 스타일
+        # 블록 빨간선 스타일
         classes = ["sudoku-cell"]
         if i % 3 == 0: classes.append("sudoku-block-top")
         if j % 3 == 0: classes.append("sudoku-block-left")
         if i == 8: classes.append("sudoku-block-bottom")
         if j == 8: classes.append("sudoku-block-right")
 
-        # 블록 배경 교차
+        # 배경 교차
         if (i//3 + j//3) % 2 == 0:
             classes.append("block-alt")
 
@@ -156,4 +156,40 @@ with col2:
                 for row in new_board
             ])
         except ValueError:
-            st.wa
+            st.warning("⚠️ 모든 칸을 숫자로 채워주세요!")
+            st.stop()
+
+        is_correct = True
+        for i in range(9):
+            if len(np.unique(user_board[i,:])) != 9 or len(np.unique(user_board[:,i])) != 9:
+                is_correct = False
+                break
+        for i in range(0,9,3):
+            for j in range(0,9,3):
+                box = user_board[i:i+3,j:j+3].flatten()
+                if len(np.unique(box)) != 9:
+                    is_correct = False
+                    break
+
+        if is_correct:
+            st.success("🎉 정답입니다!")
+            st.session_state.finished = True
+            st.session_state.end_time = int(time.time())
+            name = st.text_input("이름을 입력하세요:", key="rank_name")
+            if st.button("랭킹 등록"):
+                if name:
+                    add_ranking(name, st.session_state.end_time - st.session_state.start_time)
+                    st.success("랭킹에 등록되었습니다!")
+        else:
+            st.error("❌ 오답입니다. 다시 시도하세요!")
+
+with col3:
+    if st.button("🏆 랭킹 보기"):
+        rankings = load_ranking()
+        if not rankings:
+            st.info("아직 랭킹이 없습니다.")
+        else:
+            st.subheader("Top 10 Rankings")
+            for i, r in enumerate(rankings[:10]):
+                t = r['time']
+                st.write(f"{i+1}. {r['name']} - {t//3600:02}:{(t%3600)//60:02}:{t%60:02}")
