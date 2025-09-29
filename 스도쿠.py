@@ -30,6 +30,37 @@ def add_ranking(name, seconds):
     save_ranking(rankings)
 
 # --------------------
+# CSS 스타일 (칸 크기 줄이기 + 선 굵기 + 중앙정렬 + 글자 크기)
+# --------------------
+st.markdown("""
+    <style>
+    .sudoku-cell {
+        width: 40px !important;
+        height: 40px !important;
+        text-align: center !important;
+        font-size: 20px !important;
+        border: 1px solid #bbb;
+    }
+    .sudoku-cell input {
+        text-align: center;
+        font-size: 20px !important;
+    }
+    .sudoku-block-top {
+        border-top: 3px solid black !important;
+    }
+    .sudoku-block-left {
+        border-left: 3px solid black !important;
+    }
+    .sudoku-block-right {
+        border-right: 3px solid black !important;
+    }
+    .sudoku-block-bottom {
+        border-bottom: 3px solid black !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# --------------------
 # Streamlit 앱 초기화
 # --------------------
 if "board" not in st.session_state:
@@ -65,7 +96,7 @@ if "board" not in st.session_state:
 # --------------------
 # UI
 # --------------------
-st.title("🧩 Sudoku with Streamlit")
+st.title("🧩 Sudoku (Streamlit 버전)")
 st.write("빈칸에 숫자를 채워 스도쿠를 완성해보세요!")
 
 # 타이머 표시
@@ -75,18 +106,29 @@ else:
     elapsed = st.session_state.end_time - st.session_state.start_time
 st.write(f"⏱ 경과 시간: {elapsed//3600:02}:{(elapsed%3600)//60:02}:{elapsed%60:02}")
 
-# 퍼즐 그리드
+# 퍼즐 그리드 (CSS 적용)
 new_board = []
 for i in range(9):
     row = []
     cols = st.columns(9, gap="small")
     for j in range(9):
         val = st.session_state.board[i][j]
+
+        # 블록 선 굵기 적용
+        classes = ["sudoku-cell"]
+        if i % 3 == 0: classes.append("sudoku-block-top")
+        if j % 3 == 0: classes.append("sudoku-block-left")
+        if i == 8: classes.append("sudoku-block-bottom")
+        if j == 8: classes.append("sudoku-block-right")
+
+        cell_class = " ".join(classes)
+
         if val == "":
-            row.append(cols[j].text_input("", key=f"cell-{i}-{j}", max_chars=1))
+            row.append(cols[j].text_input("", key=f"cell-{i}-{j}", max_chars=1, label_visibility="collapsed"))
         else:
+            # 물음표(tooltip) 제거 → markdown 사용
+            cols[j].markdown(f"<div class='{cell_class}'>{val}</div>", unsafe_allow_html=True)
             row.append(val)
-            cols[j].text(val, help="주어진 숫자")
     new_board.append(row)
 
 # 버튼 영역
